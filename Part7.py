@@ -67,24 +67,6 @@ def calculate_base_risk(sector_data):
     return sector_data['Patrol_Freq'] + sector_data['Thermal_Scan'] + sector_data['Drone_Cover']
 
 
-def run_las_vegas_filtered(dataset, threat_limit=13):
-    """ Solution 1: Pure Randomization with Downstream Filter """
-    sectors = list(dataset.keys())
-    iterations = 0
-    start_time = time.perf_counter()
-    
-    while True:
-        iterations += 1
-        chosen_sector = random.choice(sectors)
-        metrics = dataset[chosen_sector]
-        risk = calculate_base_risk(metrics)
-        
-        if metrics['Enemy_Predicted'] == 'Yes' or risk > threat_limit:
-            continue
-        else:
-            execution_time = time.perf_counter() - start_time
-            return chosen_sector, iterations, execution_time
-
 
 def run_epsilon_greedy_upstream_filtered(dataset, epsilon=0.20):
     """ Solution 2 (BEST): Epsilon-Greedy with Upstream Filter """
@@ -112,34 +94,6 @@ def run_epsilon_greedy_upstream_filtered(dataset, epsilon=0.20):
     return chosen_sector, strategy_used, execution_time
 
 
-def run_lcg_filtered(dataset, previous_state=0,threat_limit=13):
-    """ Solution 3: LCG Math Wheel with Rejection Filter """
-    sectors = list(dataset.keys())
-    m = len(sectors)
-    
-    a = sum(d['Thermal_Scan'] for d in dataset.values()) | 1  
-    c = sum(d['Patrol_Freq'] for d in dataset.values())
-    
-    iterations = 0
-    state = previous_state
-    start_time = time.perf_counter()
-    
-    while True:
-        iterations += 1
-        state = (a * state + c) % m
-        chosen_sector = sectors[state]
-        metrics = dataset[chosen_sector]
-        risk = calculate_base_risk(metrics)
-        
-        if metrics['Enemy_Predicted'].lower() == 'yes' or risk > threat_limit:
-            state = (state + 1) % m #Proof that this algorithm is not safe
-            '''This part of the code exists because the algorithm freezed without it, by using the mathematical formula that is constant the algorithm might only jump between the few dangerous states, in order to prevent that from happening, this line of code is added to make sure that the algorithm does not freeze and the time complexity does not become unbounded.'''
-            continue
-        else:
-            execution_time = time.perf_counter() - start_time
-            return chosen_sector, state, iterations, execution_time
-
-
 def render_vertical_dashboard(dataset):
     print("=" * 65)
     print("                       RUNTIME RESULTS        ")
@@ -151,25 +105,12 @@ def render_vertical_dashboard(dataset):
         print(f"{sector:<8}{risk:<12}{metrics['Enemy_Predicted']:<18}{metrics['Decoy_Value']:<12}")
     print("=" * 65)
     
-    lv_sector, lv_iter, lv_time = run_las_vegas_filtered(dataset)
-    print(f"[ALGORITHM 1: Las Vegas Algorithm]")
-    print(f" -> Chosen Route   : {lv_sector}")
-    print(f" -> Loop Iterations: {lv_iter}")
-    print(f" -> Execution Time : {lv_time * 1e6:.2f} microseconds\n")
-    
     eg_sector, eg_strat, eg_time = run_epsilon_greedy_upstream_filtered(dataset)
     print(f"[ALGORITHM 2: Epsilon-Greedy Algorithm]")
     print(f" -> Chosen Route   : {eg_sector}")
     print(f" -> Selection Mode : {eg_strat}")
     print(f" -> Execution Time : {eg_time * 1e6:.2f} microseconds\n")
     
-    lcg_sector, new_state, lcg_iter, lcg_time = run_lcg_filtered(dataset, previous_state=0)
-    print(f"[ALGORITHM 3: Filtered Linear Congruential Generator]")
-    print(f" -> Chosen Route   : {lcg_sector}")
-    print(f" -> Internal State : {new_state}")
-    print(f" -> Loop Iterations: {lcg_iter}")
-    print(f" -> Execution Time : {lcg_time * 1e6:.2f} microseconds")
-    print("=" * 65)
 
 
 if __name__ == "__main__":
