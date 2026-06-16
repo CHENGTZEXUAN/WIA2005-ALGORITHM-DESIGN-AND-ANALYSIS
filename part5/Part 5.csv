@@ -1,0 +1,12 @@
+Fragment_ID,Segment_Group,Sequence_No,Data_Block,Integrity_Status,Server_Source
+F21,Helix,1,JP4-19,Valid,S-East-2
+F22,Helix,2,TK6-47,Delayed,S-North-1
+F23,Helix,3,QR8-90,Valid,S-South-2
+F24,Ion,1,LM3-14,Valid,S-West-1
+F25,Ion,2,DS5-61,Corrupted,S-West-2
+F26,Juno,1,VC2-70,Valid,S-Central
+F27,Juno,2,PF9-35,Valid,S-East-1
+F28,Juno,3,AA1-88,Valid,S-East-3
+F29,Kilo,1,WX7-26,Missing,S-North-3
+F30,Kilo,2,MR5-59,Valid,S-South-1
+F31,Kilo,3,ZD4-73,Valid,S-South-2
