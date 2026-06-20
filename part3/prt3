@@ -1,0 +1,108 @@
+import csv
+import os
+import re
+
+def execute_bunker_optimization_robust(file_path="Part 3.csv"):
+    if not os.path.exists(file_path):
+        print(f"[!] Target file '{file_path}' was not found.")
+        return
+
+    checkpoints = []
+
+    print("[+] Parsing dataset...")
+    with open(file_path, mode='r', encoding='utf-8', errors='ignore') as file:
+        for idx, line in enumerate(file):
+            line = line.strip()
+            # Skip empty lines, headers, or instructions at the bottom
+            if not line or "Checkpo" in line or "Ener" in line or "Students must" in line or "Available" in line:
+                continue
+            
+            # Split the line by commas, semicolons, tabs, or multiple spaces
+            row_elements = re.split(r'[\t,;\s]{2,}|[\t,;]', line)
+            # Remove empty strings from the split result
+            row_elements = [item.strip() for item in row_elements if item.strip()]
+
+            # We need at least Name, Energy, Time, Token, and Impact (5 elements)
+            if len(row_elements) < 5:
+                continue
+
+            try:
+                # Based on your image layout:
+                # elements[0] = Name
+                # elements[1] = Energy Cost
+                # elements[2] = Time Cost
+                # elements[3] = Token Cost
+                # elements[4] = Impact (Operation column)
+                name = row_elements[0]
+                energy = int(row_elements[1])
+                time = int(row_elements[2])
+                token = int(row_elements[3])
+                impact = int(row_elements[4])
+                target_type = row_elements[5] if len(row_elements) > 5 else "N/A"
+
+                checkpoints.append({
+                    "name": name, "energy": energy, "time": time, 
+                    "token": token, "impact": impact, "type": target_type
+                })
+            except ValueError:
+                # If it still fails to convert an element to an int, skip it gracefully
+                continue
+
+    N = len(checkpoints)
+    print(f"[+] Successfully converted {N} dataset items.")
+    if N == 0:
+        print("[!] Parse Failure: Ensure data columns contain clear integers without units.")
+        return
+
+    # Operational Capacity Baselines
+    MAX_ENERGY = 15
+    MAX_TIME = 35
+    MAX_TOKENS = 4
+
+    # 4D Multi-Constraint Dynamic Programming Grid
+    dp = [[[[0] * (MAX_TOKENS + 1) for _ in range(MAX_TIME + 1)] for _ in range(MAX_ENERGY + 1)] for _ in range(N + 1)]
+
+    for i in range(1, N + 1):
+        item = checkpoints[i - 1]
+        e_c, t_c, tk_c, imp = item["energy"], item["time"], item["token"], item["impact"]
+        
+        for e in range(MAX_ENERGY + 1):
+            for t in range(MAX_TIME + 1):
+                for tk in range(MAX_TOKENS + 1):
+                    if e_c <= e and t_c <= t and tk_c <= tk:
+                        dp[i][e][t][tk] = max(
+                            dp[i-1][e][t][tk],
+                            dp[i-1][e - e_c][t - t_c][tk - tk_c] + imp
+                        )
+                    else:
+                        dp[i][e][t][tk] = dp[i-1][e][t][tk]
+
+    # Knapsack Backtracking
+    selected = []
+    rem_e, rem_t, rem_tk = MAX_ENERGY, MAX_TIME, MAX_TOKENS
+    for i in range(N, 0, -1):
+        if dp[i][rem_e][rem_t][rem_tk] != dp[i-1][rem_e][rem_t][rem_tk]:
+            item = checkpoints[i-1]
+            selected.append(item)
+            rem_e -= item["energy"]
+            rem_t -= item["time"]
+            rem_tk -= item["token"]
+    selected.reverse()
+
+    # Generate Manifest Report
+    print("\n" + "="*60)
+    print("GREYFEN REACH OPTIMIZED SABOTAGE MANIFEST")
+    print("="*60)
+    for item in selected:
+        print(f" -> Approved Disruption: {item['name']} [{item['type']}]")
+        print(f"    Costs: Energy={item['energy']} | Time={item['time']} | Tokens={item['token']} | Impact={item['impact']}")
+    print("="*60)
+    print("Total Resource Metrics Used:")
+    print(f" - Energy consumed: {sum(x['energy'] for x in selected)} / {MAX_ENERGY}")
+    print(f" - Time consumed:   {sum(x['time'] for x in selected)} / {MAX_TIME}")
+    print(f" - Tokens consumed: {sum(x['token'] for x in selected)} / {MAX_TOKENS}")
+    print(f"MAXIMUM COMBINED OPERATIONAL IMPACT: {dp[N][MAX_ENERGY][MAX_TIME][MAX_TOKENS]} Points")
+    print("="*60 + "\n")
+
+if __name__ == "__main__":
+    execute_bunker_optimization_robust("Part 3.csv")

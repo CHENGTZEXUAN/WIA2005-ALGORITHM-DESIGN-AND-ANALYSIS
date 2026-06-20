@@ -1,0 +1,17 @@
+,Checkpoint,Energy_Cost,Time_Cost,Token_Cost,Operational_Impact,Target_Type
+,Disable Camera Grid,3,7,1,10,Surveillance
+,Corrupt Gate Authorization,4,8,1,11,Access Control
+,Extract Access Logs,2,4,0,6,Intelligence
+,Jam Patrol Drone Relay,5,10,1,15,Aerial Defence
+,Disrupt Escape Route Beacon,4,9,1,12,Mobility
+,Seize Master Access Key,9,17,2,24,Core Access
+,Upload False Navigation Beacon,3,5,1,8,Deception
+,Compromise Vault Corridor Access,5,9,1,14,Internal Access
+,,,,,,
+,,,,,,
+,,,,,,
+Students must determine the best combination of enemy checkpoints to disrupt in the Greyfen Reach bunker to maximize total operational impact without exceeding the team’s sabotage capacity.,,,,,,
+Recommended baseline:,,,,,,
+Total Energy Available = 15,,,,,,
+Total Time Available = 35,,,,,,
+Total Tokens Available = 4,,,,,,
